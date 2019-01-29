@@ -1,5 +1,13 @@
 #INCLUDE        <p16f1503.inc>
 ; TODO INSERT CONFIG CODE HERE USING CONFIG BITS GENERATOR
+; CONFIG1
+ __CONFIG       _CONFIG1, 0xFFE4        ; _FOSC_INTOSC & _WDTE_OFF &
+                                        ; _PWRTE_OFF & _MCLRE_ON &
+                                        ; _CP_OFF & _BOREN_ON &
+                                        ; _CLKOUTEN_OFF
+; CONFIG2
+ __CONFIG       _CONFIG2, 0xFFFF        ; _WRT_OFF & _STVREN_ON & _BORV_LO &
+                                        ; _LPBOR_OFF & _LVP_ON
 
 RESET:  ORG     0x0000                  ; processor reset vector
 ;RESET: CODE    0x0000                  ; processor reset vector (rel)

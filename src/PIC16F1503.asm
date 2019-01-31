@@ -1,3 +1,17 @@
+;*******************************************************************************
+;                                                                              *
+;    Filename:      PIC16F1503.asm                                             *
+;    Date:          2019.02.01                                                 *
+;    File Version:  1.0                                                        *
+;    Author:        ValV                                                       *
+;    Company:                                                                  *
+;    Description:   Fairy lights PIC MCU project.                              *
+;                                                                              *
+;*******************************************************************************
+;                                                                              *
+;    Revision History:                                                         *
+;                                                                              *
+;*******************************************************************************
         #INCLUDE    <p16f1503.inc>
 ; TODO INSERT CONFIG CODE HERE USING CONFIG BITS GENERATOR
                                         ; CONFIG1
@@ -26,7 +40,7 @@ ISR:    ORG         0x0004              ; interrupt vector address
         RETFIE
 
 SETUP:
-; PWM configuration
+; PWM CONFIGURATION
 ; Step 1. Disable PWMx outputs
         BANKSEL     TRISC
         BSF         TRISC, TRISC5       ; disable PWM1 output driver (RC5)
@@ -50,15 +64,13 @@ SETUP:
         CLRF        PWM1DCL             ; clear LSB
 ; Step 5. Setup and start Timer2
         BANKSEL     PIR1
-                                        ; reset cycle and PWM timers (disable and detach)
-                                        ; disable interrupts PWM timer(s)
         BCF         PIR1, TMR2IF        ; reset timer (clear overflow bit)
-        BANKSEL     T2CON               ; x1 prescaler for Timer2 = 0x00
-        BCF         T2CON, T2CKPS0      ; clear LSB
-        BCF         T2CON, T2CKPS1      ; clear MSB
+        BANKSEL     T2CON
+        BCF         T2CON, T2CKPS0      ; clear LSB (x1 prescaler = 0x00)
+        BCF         T2CON, T2CKPS1      ; clear MSB (x1 prescaler = 0x00)
         BSF         T2CON, TMR2ON       ; enable PWM timer(s) (16000000/1/256 = 62500 Hz, (/1) prescaler)
 ; Step 6. Enable PWM outputs
-        NOP                             ; enable PWM (?)
+        NOP                             ; enable PWM output?
 ; Step 7. Enable PWMx pin output drivers
         BANKSEL     TRISC
         BCF         TRISC, TRISC5
@@ -71,12 +83,13 @@ SETUP:
         BSF         PWM2CON, PWM2OE     ; PWM1 output enable
         BSF         PWM3CON, PWM3OE     ; PWM1 output enable
         BSF         PWM4CON, PWM4OE     ; PWM1 output enable
-; Step 8. Enable PWM module
+; Step 8. Activate PWM module
         BANKSEL     PWM1CON
         BSF         PWM1CON, PWM1EN     ; activate PWM1
         BSF         PWM2CON, PWM2EN     ; activate PWM2
         BSF         PWM3CON, PWM3EN     ; activate PWM3
         BSF         PWM4CON, PWM4EN     ; activate PWM4
+; PUSHBUTTON AND CYCLE TIMER CONFIGURATION
 ;       BANKSEL     INTCON              ; TODO
 ;       BCF         INTCON, GIE         ; turn off global interrupts
                                         ; configure PushButton pin (input)

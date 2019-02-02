@@ -49,14 +49,13 @@ OSCRDY: BTFSS       OSCSTAT, HFIOFS     ; check if HF oscillator is stable
         GOTO        OSCRDY              ; HFINTOSC bit is not set -> check
 ; PWM CONFIGURATION
 ; Step 1. Disable PWMx outputs
-        BANKSEL     TRISC
-        BSF         TRISC, TRISC5       ; disable PWM1 output driver (RC5)
-        BSF         TRISC, TRISC3       ; disable PWM2 output driver (RC3)
-        BSF         TRISC, TRISC1       ; disable PWM4 output driver (RC1)
-        BANKSEL     TRISA
-        BSF         TRISA, TRISA2       ; disable PWM3 output driver (RA1)
+        BANKSEL     TRISA               ; assume TRISx registers together
+        BSF         TRISC, TRISC5       ; set RC5 to input (PWM1)
+        BSF         TRISC, TRISC3       ; set RC3 to input (PWM2)
+        BSF         TRISA, TRISA2       ; set RA2 to input (PWM3)
+        BSF         TRISC, TRISC1       ; set RC1 to input (PWM4)
 ; Step 2. Clear PWM configuration
-        BANKSEL     PWM1CON
+        BANKSEL     PWM1CON             ; assume PWMxCON registers together
         CLRF        PWM1CON             ; disable PWM1 module, pin, configs
         CLRF        PWM2CON             ; disable PWM2 module, pin, configs
         CLRF        PWM3CON             ; disable PWM3 module, pin, configs
@@ -66,9 +65,15 @@ OSCRDY: BTFSS       OSCSTAT, HFIOFS     ; check if HF oscillator is stable
         MOVLW       0xFF                ; (8*10^6)/((0xFF+1)*4*1) = 7812.5 Hz
         MOVWF       PR2                 ; PR2=0xFF, Tosc=1/8 MHz, prescale=1
 ; Step 4. Clear PWM duty cycle
-        BANKSEL     PWM1DCH
+        BANKSEL     PWM1DCH             ; assume PWMxDCx registers together
         CLRF        PWM1DCH             ; clear MSB (0..1020, w/o LSB)
         CLRF        PWM1DCL             ; clear LSB (will not be used)
+        CLRF        PWM2DCH             ; duty cycle ratio (DCR) =
+        CLRF        PWM2DCL             ; (PWMxDCH:PWMxDCL<7:6>)/(4(PR2+1))
+        CLRF        PWM3DCH             ; PWMxDCH = 0xFF => DCR = 0.996
+        CLRF        PWM3DCL             ; PWMxDCH = 0x85 => DCR = 0.332
+        CLRF        PWM4DCH             ; where PWMxDCL is always 0x00
+        CLRF        PWM4DCL             ; loss of LSB does not affect much
 ; Step 5. Setup and start Timer2
         BANKSEL     PIR1
         BCF         PIR1, TMR2IF        ; reset timer (clear overflow bit)
@@ -77,19 +82,18 @@ OSCRDY: BTFSS       OSCSTAT, HFIOFS     ; check if HF oscillator is stable
         BCF         T2CON, T2CKPS1      ; clear MSB (x1 prescaler = 0x00)
         BSF         T2CON, TMR2ON       ; enable PWM timer(s) (16000000/1/256 = 62500 Hz, (/1) prescaler)
 ; Step 6. Enable PWM outputs
-        NOP                             ; enable PWM output?
+        NOP                             ; TODO: remove this step
 ; Step 7. Enable PWMx pin output drivers
-        BANKSEL     TRISC
-        BCF         TRISC, TRISC5
-        BCF         TRISC, TRISC3
-        BCF         TRISC, TRISC1
-        BANKSEL     TRISA
-        BCF         TRISA, TRISA2       ; enable PWM output driver
+        BANKSEL     TRISA               ; assume TRISx registers together
+        BCF         TRISC, TRISC5       ; set RC5 to output (PWM1)
+        BCF         TRISC, TRISC3       ; set RC3 to output (PWM2)
+        BCF         TRISA, TRISA2       ; set RA2 to output (PWM3)
+        BCF         TRISC, TRISC1       ; set RC1 to output (PWM4)
         BANKSEL     PWM1CON
         BSF         PWM1CON, PWM1OE     ; PWM1 output enable
-        BSF         PWM2CON, PWM2OE     ; PWM1 output enable
-        BSF         PWM3CON, PWM3OE     ; PWM1 output enable
-        BSF         PWM4CON, PWM4OE     ; PWM1 output enable
+        BSF         PWM2CON, PWM2OE     ; PWM2 output enable
+        BSF         PWM3CON, PWM3OE     ; PWM3 output enable
+        BSF         PWM4CON, PWM4OE     ; PWM4 output enable
 ; Step 8. Activate PWM module
         BANKSEL     PWM1CON
         BSF         PWM1CON, PWM1EN     ; activate PWM1

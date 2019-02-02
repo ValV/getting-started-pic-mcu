@@ -24,9 +24,9 @@
                                         ; _LPBOR_OFF & _LVP_ON
 
 ; VARIABLES BLOCK
-        CBLOCK      0x20
-        MODE
-        ENDC
+        CBLOCK      0x20                ;
+        MODE                            ;
+        ENDC                            ;
 
 RESET:  ORG         0x0000              ; processor reset vector
         PAGESEL     START               ; ensure proper page is selected
@@ -37,14 +37,14 @@ ISR:    ORG         0x0004              ; interrupt vector address
                                         ; cycle timer interrupt vector (low)
 
                                         ; PushButton interrupt vector (high)
-        RETFIE
+        RETFIE                          ;
 
 SETUP:
 ; INTERNAL OSCILLATOR SETUP
-        BANKSEL     OSCCON
+        BANKSEL     OSCCON              ;
         MOVLW       B'01110000'         ; '00' SCS -> _FOSC_INTOSC config
         MOVWF       OSCCON              ; '1110' IRCF -> 8 MHz
-        BANKSEL     OSCSTAT
+        BANKSEL     OSCSTAT             ;
 OSCRDY: BTFSS       OSCSTAT, HFIOFS     ; check if HF oscillator is stable
         GOTO        OSCRDY              ; HFINTOSC bit is not set -> check
 ; PWM CONFIGURATION
@@ -75,9 +75,9 @@ OSCRDY: BTFSS       OSCSTAT, HFIOFS     ; check if HF oscillator is stable
         CLRF        PWM4DCH             ; where PWMxDCL is always 0x00
         CLRF        PWM4DCL             ; loss of LSB does not affect much
 ; Step 5. Setup and start Timer2
-        BANKSEL     PIR1
+        BANKSEL     PIR1                ;
         BCF         PIR1, TMR2IF        ; reset timer (clear overflow bit)
-        BANKSEL     T2CON
+        BANKSEL     T2CON               ;
         BCF         T2CON, T2CKPS0      ; clear LSB (x1 prescaler = 0x00)
         BCF         T2CON, T2CKPS1      ; clear MSB (x1 prescaler = 0x00)
         BSF         T2CON, TMR2ON       ; enable PWM timer(s) (16000000/1/256 = 62500 Hz, (/1) prescaler)
@@ -89,13 +89,13 @@ OSCRDY: BTFSS       OSCSTAT, HFIOFS     ; check if HF oscillator is stable
         BCF         TRISC, TRISC3       ; set RC3 to output (PWM2)
         BCF         TRISA, TRISA2       ; set RA2 to output (PWM3)
         BCF         TRISC, TRISC1       ; set RC1 to output (PWM4)
-        BANKSEL     PWM1CON
+        BANKSEL     PWM1CON             ;
         BSF         PWM1CON, PWM1OE     ; PWM1 output enable
         BSF         PWM2CON, PWM2OE     ; PWM2 output enable
         BSF         PWM3CON, PWM3OE     ; PWM3 output enable
         BSF         PWM4CON, PWM4OE     ; PWM4 output enable
 ; Step 8. Activate PWM module
-        BANKSEL     PWM1CON
+        BANKSEL     PWM1CON             ;
         BSF         PWM1CON, PWM1EN     ; activate PWM1
         BSF         PWM2CON, PWM2EN     ; activate PWM2
         BSF         PWM3CON, PWM3EN     ; activate PWM3
@@ -103,6 +103,7 @@ OSCRDY: BTFSS       OSCSTAT, HFIOFS     ; check if HF oscillator is stable
 ; PUSHBUTTON AND CYCLE TIMER CONFIGURATION
 ; Step 1. Configure push button interrupts
         BCF         INTCON, GIE         ; turn off global interrupts (CFR)
+        BSF         INTCON, IOCIE       ; enable interrupt-on-change
         BANKSEL     IOCAP               ; IOCAP sets IOCAF bit on positive edge
         BSF         IOCAP, IOCAP4       ; RA4 pin interrupt on positive detect
         BSF         TRISA, TRISA4       ; configure PushButton pin (input)
@@ -114,18 +115,17 @@ OSCRDY: BTFSS       OSCSTAT, HFIOFS     ; check if HF oscillator is stable
         BSF         T1CON, TMR1ON       ; enable Timer1
         BCF         T1GCON, TMR1GE      ; disable Timer1 gate mode
 ; Step 4. Setup Timer1 initial counter value (2^16-(8*10^6)/(4*50) = 25536)
-                                        ; set compare register for cycle timer
         BANKSEL     TMR1L               ; assume TMR1L, TMR1H together
         MOVLW       0xC0                ; set LSB for counter value 0x63C0
         MOVWF       TMR1L               ; write Timer1 counter LSB
         MOVLW       0x63                ; set MSB for counter value 0x63C0
         MOVWF       TMR1H               ; write Timer1 counter MSB
 ; Step 5. Enable interrupts for Timer1
-        BANKSEL     PIE1
+        BANKSEL     PIE1                ;
         BSF         PIE1, TMR1IE        ; enable interrupts for Timer1
         BSF         INTCON, PEIE        ; enable peripherial interrupts
         BSF         INTCON, GIE         ; enable global interrupts (CFR)
-        RETURN
+        RETURN                          ;
 
 START:
         CALL        SETUP               ; setup MCU

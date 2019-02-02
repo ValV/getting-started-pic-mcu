@@ -40,6 +40,13 @@ ISR:    ORG         0x0004              ; interrupt vector address
         RETFIE
 
 SETUP:
+; INTERNAL OSCILLATOR SETUP
+        BANKSEL     OSCCON
+        MOVLW       B'01110000'         ; '00' SCS -> _FOSC_INTOSC config
+        MOVWF       OSCCON              ; '1110' IRCF -> 8 MHz
+        BANKSEL     OSCSTAT
+OSCRDY: BTFSS       OSCSTAT, HFIOFS     ; check if HF oscillator is stable
+        GOTO        OSCRDY              ; HFINTOSC bit is not set -> check
 ; PWM CONFIGURATION
 ; Step 1. Disable PWMx outputs
         BANKSEL     TRISC
@@ -90,16 +97,16 @@ SETUP:
         BSF         PWM3CON, PWM3EN     ; activate PWM3
         BSF         PWM4CON, PWM4EN     ; activate PWM4
 ; PUSHBUTTON AND CYCLE TIMER CONFIGURATION
-;       BANKSEL     INTCON              ; TODO
-;       BCF         INTCON, GIE         ; turn off global interrupts
+        BCF         INTCON, GIE         ; turn off global interrupts (CFR)
+        BANKSEL     IOCAP               ; IOCAP sets IOCAF bit on positive edge
+        BSF         IOCAP, IOCAP4       ; RA4 pin interrupt on positive detect
                                         ; configure PushButton pin (input)
                                         ; enable cycle timer (16000000/8/256 = 7812.5 Hz, (/8) prescaler)
                                         ; enable interrupts on cycle timer
                                         ; set prescaler for cycle timer
                                         ; set cycle timer frequency (50 Hz)
                                         ; set compare register for cycle timer
-                                        ; enable interrupts for PushButton
-                                        ; enable global interrupts
+        BSF         INTCON, GIE         ; enable global interrupts (CFR)
         RETURN
 
 START:

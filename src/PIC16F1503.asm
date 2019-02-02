@@ -48,7 +48,7 @@ SETUP:
 OSCRDY: BTFSS       OSCSTAT, HFIOFS     ; check if HF oscillator is stable
         GOTO        OSCRDY              ; HFINTOSC bit is not set -> check
 ; PWM CONFIGURATION
-; Step 1. Disable PWMx outputs
+; Step 1. Disable PWMx output drivers
         BANKSEL     TRISA               ; assume TRISx registers together
         BSF         TRISC, TRISC5       ; set RC5 to input (PWM1)
         BSF         TRISC, TRISC3       ; set RC3 to input (PWM2)
@@ -101,15 +101,29 @@ OSCRDY: BTFSS       OSCSTAT, HFIOFS     ; check if HF oscillator is stable
         BSF         PWM3CON, PWM3EN     ; activate PWM3
         BSF         PWM4CON, PWM4EN     ; activate PWM4
 ; PUSHBUTTON AND CYCLE TIMER CONFIGURATION
+; Step 1. Configure push button interrupts
         BCF         INTCON, GIE         ; turn off global interrupts (CFR)
         BANKSEL     IOCAP               ; IOCAP sets IOCAF bit on positive edge
         BSF         IOCAP, IOCAP4       ; RA4 pin interrupt on positive detect
-                                        ; configure PushButton pin (input)
-                                        ; enable cycle timer (16000000/8/256 = 7812.5 Hz, (/8) prescaler)
-                                        ; enable interrupts on cycle timer
-                                        ; set prescaler for cycle timer
-                                        ; set cycle timer frequency (50 Hz)
+        BSF         TRISA, TRISA4       ; configure PushButton pin (input)
+; Step 2. Configure cycle timer (Timer1) clock source
+        BANKSEL     T1CON               ; assume T1CON, T1GCON together
+        BCF         T1CON, TMR1CS0      ; set Timer1 clock source to
+        BCF         T1CON, TMR1CS1      ; instruction clock: Fosc/4 = 2 MHz
+; Step 3. Enable cycle timer (with 2 MHz counter frequency)
+        BSF         T1CON, TMR1ON       ; enable Timer1
+        BCF         T1GCON, TMR1GE      ; disable Timer1 gate mode
+; Step 4. Setup Timer1 initial counter value (2^16-(8*10^6)/(4*50) = 25536)
                                         ; set compare register for cycle timer
+        BANKSEL     TMR1L               ; assume TMR1L, TMR1H together
+        MOVLW       0xC0                ; set LSB for counter value 0x63C0
+        MOVWF       TMR1L               ; write Timer1 counter LSB
+        MOVLW       0x63                ; set MSB for counter value 0x63C0
+        MOVWF       TMR1H               ; write Timer1 counter MSB
+; Step 5. Enable interrupts for Timer1
+        BANKSEL     PIE1
+        BSF         PIE1, TMR1IE        ; enable interrupts for Timer1
+        BSF         INTCON, PEIE        ; enable peripherial interrupts
         BSF         INTCON, GIE         ; enable global interrupts (CFR)
         RETURN
 

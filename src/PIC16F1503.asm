@@ -34,9 +34,31 @@ RESET:  ORG         0x0000              ; processor reset vector
 
 ; TODO ADD INTERRUPTS HERE IF USED
 ISR:    ORG         0x0004              ; interrupt vector address
-                                        ; cycle timer interrupt vector (low)
-
-                                        ; PushButton interrupt vector (high)
+; Check Timer1 interrupt flag and handle it
+        BANKSEL     PIR1                ;
+ISRTMR:
+        BTFSS       PIR1, TMR1IF        ; check timer's interrupt flag set
+        GOTO        ISRIOC              ; goto interrupt-on-change flag
+        BCF         PIR1, TMR1IF        ; clear timer's interrupt flag
+; Reset Timer1 counter
+        BANKSEL     TMR1L               ; assume TMR1L, TMR1H together
+        MOVLW       0xC0                ; set LSB for counter value 0x63C0
+        MOVWF       TMR1L               ; write Timer1 counter LSB
+        MOVLW       0x63                ; set MSB for counter value 0x63C0
+        MOVWF       TMR1H               ; write Timer1 counter MSB
+                                        ; TODO: load PWMx duty cycles
+; Check interrupt-on-change flag
+ISRIOC:
+        BANKSEL     IOCAF               ;
+        BTFSS       IOCAF, IOCAF4       ; PushButton interrupt vector (high)
+        GOTO        ISREND              ; exit ISR
+        BCF         IOCAF, IOCAF4       ; clear RA4 IOC interrupt flag
+                                        ; TODO: rotate variable 0..3
+; Final check
+ISREND:
+        BANKSEL     PIR1                ;
+        BTFSC       PIR1, TMR1IF        ; check timer's interrupt flag again
+        GOTO        ISRTMR              ; interrupt occured in ISR, handle
         RETFIE                          ;
 
 SETUP:

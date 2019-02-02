@@ -25,7 +25,7 @@
 
 ; VARIABLES BLOCK
         CBLOCK      0x20                ;
-        MODE                            ;
+                    MD, SQ              ; mode 0x20 and sequence 0x21
         ENDC                            ;
 
 RESET:  ORG         0x0000              ; processor reset vector
@@ -53,7 +53,10 @@ ISRIOC:
         BTFSS       IOCAF, IOCAF4       ; PushButton interrupt vector (high)
         GOTO        ISREND              ; exit ISR
         BCF         IOCAF, IOCAF4       ; clear RA4 IOC interrupt flag
-                                        ; TODO: rotate variable 0..3
+        BANKSEL     MD                  ; TODO: rotate variable 0..3
+        INCF        MD, W               ; increment mode and store in W
+        ANDLW       0x3                 ; W & 0x3 (cycle 0..3)
+        MOVWF       MD                  ; return W to MD
 ; Final check
 ISREND:
         BANKSEL     PIR1                ;
@@ -151,5 +154,8 @@ OSCRDY: BTFSS       OSCSTAT, HFIOFS     ; check if HF oscillator is stable
 
 START:
         CALL        SETUP               ; setup MCU
+        MOVLW       0x0                 ; variables initial value
+        MOVWF       MD                  ; initialize mode variable
+        MOVWF       SQ                  ; initialize sequence variable
         GOTO        $                   ; loop forever
         END

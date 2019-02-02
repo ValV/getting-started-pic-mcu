@@ -62,13 +62,13 @@ OSCRDY: BTFSS       OSCSTAT, HFIOFS     ; check if HF oscillator is stable
         CLRF        PWM3CON             ; disable PWM3 module, pin, configs
         CLRF        PWM4CON             ; disable PWM4 module, pin, configs
 ; Step 3. Setting PWM period
-        BANKSEL     PR2
-        MOVLW       0x65                ; (0x65+1)*4/(8*10^6)*1 = 19607.8 Hz
-        MOVWF       PR2                 ; PR2=0x65, Tosc=1/8 MHz, prescale=1
+        BANKSEL     PR2                 ; period = (PR2+1)*4*Tosc*prescale
+        MOVLW       0xFF                ; (8*10^6)/((0xFF+1)*4*1) = 7812.5 Hz
+        MOVWF       PR2                 ; PR2=0xFF, Tosc=1/8 MHz, prescale=1
 ; Step 4. Clear PWM duty cycle
         BANKSEL     PWM1DCH
-        CLRF        PWM1DCH             ; clear MSB
-        CLRF        PWM1DCL             ; clear LSB
+        CLRF        PWM1DCH             ; clear MSB (0..1020, w/o LSB)
+        CLRF        PWM1DCL             ; clear LSB (will not be used)
 ; Step 5. Setup and start Timer2
         BANKSEL     PIR1
         BCF         PIR1, TMR2IF        ; reset timer (clear overflow bit)

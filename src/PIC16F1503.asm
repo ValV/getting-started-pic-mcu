@@ -83,6 +83,7 @@ ISRIOC:
         ADDWF       MD, W               ; increment mode and store in W
         ANDLW       0x7F                ; W & 0x7F (rotate 0..127)
         MOVWF       MD                  ; return W to MD
+        CLRF        SQ                  ; mode switched, reset sequence
 ; Final check
 ISREND:
         BANKSEL     PIR1                ;

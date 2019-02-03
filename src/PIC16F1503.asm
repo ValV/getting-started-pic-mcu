@@ -12,7 +12,8 @@
 ;    Revision History:                                                         *
 ;                                                                              *
 ;*******************************************************************************
-        #INCLUDE    <p16f1503.inc>
+#INCLUDE    <p16f1503.inc>
+#INCLUDE    "modes.asm"
 ; TODO INSERT CONFIG CODE HERE USING CONFIG BITS GENERATOR
                                         ; CONFIG1
         __CONFIG    _CONFIG1, 0xFFE4    ; _FOSC_INTOSC & _WDTE_OFF &
@@ -26,9 +27,10 @@
 ; VARIABLES BLOCK
         CBLOCK      0x20                ;
                     MD, SQ              ; mode 0x20 and sequence 0x21
+                    TEMP                ; temporary variable
         ENDC                            ;
 
-RESET:  ORG         0x0000              ; processor reset vector
+RST:    ORG         0x0000              ; processor reset vector
         PAGESEL     START               ; ensure proper page is selected
         GOTO        START               ; go to beginning of program
 
@@ -40,22 +42,46 @@ ISRTMR:
         BTFSS       PIR1, TMR1IF        ; check timer's interrupt flag set
         GOTO        ISRIOC              ; goto interrupt-on-change flag
         BCF         PIR1, TMR1IF        ; clear timer's interrupt flag
-; Reset Timer1 counter
+; Reset Timer1 counter (assume LSB is set at 11th clock, +0xB)
         BANKSEL     TMR1L               ; assume TMR1L, TMR1H together
-        MOVLW       0xC0                ; set LSB for counter value 0x63C0
+        MOVLW       0xCB                ; set LSB for counter value 0x63C0
         MOVWF       TMR1L               ; write Timer1 counter LSB
         MOVLW       0x63                ; set MSB for counter value 0x63C0
         MOVWF       TMR1H               ; write Timer1 counter MSB
-                                        ; TODO: load PWMx duty cycles
+; Read variables and write to PWM duty cycles
+        BANKSEL     MD                  ;
+        MOVLW       LOW MX              ; set W as matrix low address
+        ADDWF       MD, W               ; add mode offset
+        ADDWF       SQ, W               ; add sequence offset
+        MOVWF       FSR0L               ; move address with offset to FSR
+        MOVLW       HIGH MX             ; set W as matrix high address
+        MOVWF       FSR0H               ; move address MSB to FSR
+        BANKSEL     PWM1DCH             ; assume PWMxDCx registers together
+        MOVIW       0[FSR0]             ; get MX[MD][SQ][0] value
+        MOVWF       PWM1DCH             ; set PWM1 duty cycle
+        MOVIW       1[FSR0]             ; get MX[MD][SQ][1] value
+        MOVWF       PWM2DCH             ; set PWM2 duty cycle
+        MOVIW       2[FSR0]             ; get MX[MD][SQ][2] value
+        MOVWF       PWM3DCH             ; set PWM3 duty cycle
+        MOVIW       3[FSR0]             ; get MX[MD][SQ][3] value
+        MOVWF       PWM4DCH             ; set PWM4 duty cycle
+; Rotate cycles
+        BANKSEL     SQ                  ; rotate variable 0..31 by 4
+        MOVLW       0x4                 ; increase by 4 (4 PWMs)
+        ADDWF       SQ, W               ; increment cycle and store in W
+        ANDLW       0x1F                ; W & 0x1F (rotate 0..31)
+        MOVWF       SQ                  ; return W to SQ
 ; Check interrupt-on-change flag
 ISRIOC:
         BANKSEL     IOCAF               ;
         BTFSS       IOCAF, IOCAF4       ; PushButton interrupt vector (high)
         GOTO        ISREND              ; exit ISR
         BCF         IOCAF, IOCAF4       ; clear RA4 IOC interrupt flag
-        BANKSEL     MD                  ; TODO: rotate variable 0..3
-        INCF        MD, W               ; increment mode and store in W
-        ANDLW       0x3                 ; W & 0x3 (cycle 0..3)
+; Rotate modes
+        BANKSEL     MD                  ; rotate variable 0..127 by 32
+        MOVLW       0x20                ; increase by 32 (8x4 mode matrix)
+        ADDWF       MD, W               ; increment mode and store in W
+        ANDLW       0x7F                ; W & 0x7F (rotate 0..127)
         MOVWF       MD                  ; return W to MD
 ; Final check
 ISREND:
@@ -153,7 +179,15 @@ OSCRDY: BTFSS       OSCSTAT, HFIOFS     ; check if HF oscillator is stable
         RETURN                          ;
 
 START:
+; Create tables in program memory
+MX:     ;ORG         START               ;
+        DTM         MODA                ; 1st mode (from modes.asm file)
+        DTM         MODB                ; 2nd mode (from modes.asm file)
+        DTM         MODC                ; 3rd mode (from modes.asm file)
+        DTM         MODD                ; 4th mode (from modes.asm file)
+; Call device configuration routine
         CALL        SETUP               ; setup MCU
+; Initialize variables
         MOVLW       0x0                 ; variables initial value
         MOVWF       MD                  ; initialize mode variable
         MOVWF       SQ                  ; initialize sequence variable

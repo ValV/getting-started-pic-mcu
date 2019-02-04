@@ -132,7 +132,7 @@ OSCRDY: BTFSS       OSCSTAT, HFIOFS     ; check if HF oscillator is stable
         BANKSEL     T2CON               ;
         BCF         T2CON, T2CKPS0      ; clear LSB (x1 prescaler = 0x00)
         BCF         T2CON, T2CKPS1      ; clear MSB (x1 prescaler = 0x00)
-        BSF         T2CON, TMR2ON       ; enable PWM timer(s) (16000000/1/256 = 62500 Hz, (/1) prescaler)
+        BSF         T2CON, TMR2ON       ; enable PWM timer
 ; Step 6. Enable PWM outputs
         NOP                             ; TODO: remove this step
 ; Step 7. Enable PWMx pin output drivers
@@ -181,8 +181,7 @@ OSCRDY: BTFSS       OSCSTAT, HFIOFS     ; check if HF oscillator is stable
 
 START:
 ; Create tables in program memory
-MX:     ;ORG         START               ;
-        DTM         MODA                ; 1st mode (from modes.asm file)
+MX:     DTM         MODA                ; 1st mode (from modes.asm file)
         DTM         MODB                ; 2nd mode (from modes.asm file)
         DTM         MODC                ; 3rd mode (from modes.asm file)
         DTM         MODD                ; 4th mode (from modes.asm file)

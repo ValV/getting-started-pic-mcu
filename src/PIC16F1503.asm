@@ -2,19 +2,15 @@
 ;                                                                              *
 ;    Filename:      PIC16F1503.asm                                             *
 ;    Date:          2019.02.01                                                 *
-;    File Version:  1.0                                                        *
-;    Author:        ValV                                                       *
+;    File Version:  1.1                                                        *
+;    Author:        ValV <0x05A4 at gmail>                                     *
 ;    Company:                                                                  *
-;    Description:   Fairy lights PIC MCU project.                              *
-;                                                                              *
-;*******************************************************************************
-;                                                                              *
-;    Revision History:                                                         *
+;    Description:   Fairy Lights PIC MCU project.                              *
 ;                                                                              *
 ;*******************************************************************************
 #INCLUDE    <p16f1503.inc>
 #INCLUDE    "modes.asm"
-; TODO INSERT CONFIG CODE HERE USING CONFIG BITS GENERATOR
+; CONFIG CODE FROM CONFIG BITS GENERATOR
                                         ; CONFIG1
         __CONFIG    _CONFIG1, 0xFFE4    ; _FOSC_INTOSC & _WDTE_OFF &
                                         ; _PWRTE_OFF & _MCLRE_ON &
@@ -25,16 +21,15 @@
                                         ; _LPBOR_OFF & _LVP_ON
 
 ; VARIABLES BLOCK
-        CBLOCK      0x20                ;
+        CBLOCK      0x20                ; general purpose registers @BANK0
                     MD, SQ              ; mode 0x20 and sequence 0x21
-                    TEMP                ; temporary variable
         ENDC                            ;
 
 RST:    ORG         0x0000              ; processor reset vector
         PAGESEL     START               ; ensure proper page is selected
         GOTO        START               ; go to beginning of program
 
-; TODO ADD INTERRUPTS HERE IF USED
+; INTERRUPT SERVICE ROUTINE
 ISR:    ORG         0x0004              ; interrupt vector address
 ; Check Timer1 interrupt flag and handle it
         BANKSEL     PIR1                ;
@@ -42,9 +37,9 @@ ISRTMR:
         BTFSS       PIR1, TMR1IF        ; check timer's interrupt flag set
         GOTO        ISRIOC              ; goto interrupt-on-change flag
         BCF         PIR1, TMR1IF        ; clear timer's interrupt flag
-; Reset Timer1 counter (assume LSB is set at 11th clock, +0xB)
+; Reset Timer1 counter (assume LSB is set at 11th clock +1, +0xC)
         BANKSEL     TMR1L               ; assume TMR1L, TMR1H together
-        MOVLW       0xCB                ; set LSB for counter value 0x63C0
+        MOVLW       0xCC                ; set LSB for counter value 0x63C0
         MOVWF       TMR1L               ; write Timer1 counter LSB
         MOVLW       0x63                ; set MSB for counter value 0x63C0
         MOVWF       TMR1H               ; write Timer1 counter MSB
@@ -133,9 +128,7 @@ OSCRDY: BTFSS       OSCSTAT, HFIOFS     ; check if HF oscillator is stable
         BCF         T2CON, T2CKPS0      ; clear LSB (x1 prescaler = 0x00)
         BCF         T2CON, T2CKPS1      ; clear MSB (x1 prescaler = 0x00)
         BSF         T2CON, TMR2ON       ; enable PWM timer
-; Step 6. Enable PWM outputs
-        NOP                             ; TODO: remove this step
-; Step 7. Enable PWMx pin output drivers
+; Step 6. Enable PWMx pin output drivers
         BANKSEL     TRISA               ; assume TRISx registers together
         BCF         TRISC, TRISC5       ; set RC5 to output (PWM1)
         BCF         TRISC, TRISC3       ; set RC3 to output (PWM2)
@@ -146,7 +139,7 @@ OSCRDY: BTFSS       OSCSTAT, HFIOFS     ; check if HF oscillator is stable
         BSF         PWM2CON, PWM2OE     ; PWM2 output enable
         BSF         PWM3CON, PWM3OE     ; PWM3 output enable
         BSF         PWM4CON, PWM4OE     ; PWM4 output enable
-; Step 8. Activate PWM module
+; Step 7. Activate PWM module
         BANKSEL     PWM1CON             ;
         BSF         PWM1CON, PWM1EN     ; activate PWM1
         BSF         PWM2CON, PWM2EN     ; activate PWM2
@@ -177,7 +170,7 @@ OSCRDY: BTFSS       OSCSTAT, HFIOFS     ; check if HF oscillator is stable
         BSF         PIE1, TMR1IE        ; enable interrupts for Timer1
         BSF         INTCON, PEIE        ; enable peripherial interrupts
         BSF         INTCON, GIE         ; enable global interrupts (CFR)
-        RETURN                          ;
+        RETURN                          ; pop up program stack
 
 START:
 ; Create tables in program memory
@@ -192,4 +185,5 @@ MX:     DTM         MODA                ; 1st mode (from modes.asm file)
         MOVWF       MD                  ; initialize mode variable
         MOVWF       SQ                  ; initialize sequence variable
         GOTO        $                   ; loop forever
-        END
+        END                             ; nothing more
+; vim: se et ts=4 sw=4 nowrap number:

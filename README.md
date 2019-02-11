@@ -4,6 +4,11 @@
 
 The project is a spin-off from [Arduino-based device](https://github.com/ValV/getting-started-arduino) that is more focused on hardware implementation, thus the main algorithm is derived from that work.
 
+## Task
+
+Develop and implement PIC-based microcontroller board that is able to drive fairy lights like Arduino:
+![Arduino-driven board](https://github.com/ValV/getting-started-arduino/raw/master/schematics.jpg)
+
 ## Selecting MCU
 
 *PIC16F1503* has been chosen from all the diversity of Microchip's production as the cheapest and the simplest 8-bit device with 4 PWM onboard.

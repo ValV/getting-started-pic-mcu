@@ -9,13 +9,39 @@ The project is a spin-off from [Arduino-based device](https://github.com/ValV/ge
 Develop and implement PIC-based microcontroller board that is able to drive fairy lights like Arduino:
 ![Arduino-driven board](https://github.com/ValV/getting-started-arduino/raw/master/schematics.jpg)
 
-## Selecting MCU
+## Target Device
 
-*PIC16F1503* has been chosen from all the diversity of Microchip's production as the cheapest and the simplest 8-bit device with 4 PWM onboard.
+### Selecting MCU
 
-> Perhaps, not the cheapest at all, but at this point of time [MAPS](https://www.microchip.com/maps/Microcontroller.aspx) promotes it as such
+According to [MAPS](https://www.microchip.com/maps/Microcontroller.aspx)*PIC16F1503* is the cheapest and the simplest device of all the diversity of Microchip's production with 4 PWM onboard at the moment.
 
-Maybe it's not the most optimal choice for such a simple task, but let's stick with this one.
+### Capabilities
+
+*PIC16F1503* has 8-bit core, 15-bit program counter (PC), 16-level deep hardware stack, and peripherials:
+
+* analog to digital converter (ADC);
+* complementary wave generator (CWG);
+* digital to analog converter (DAC);
+* fixed voltage reference (FVR);
+* numerically controlled oscillator (NCO);
+* temperature indicator;
+* 2 comparators (*C1*, *C2*);
+* 2 configurable logic blocks (*CLC1*, *CLC2*);
+* master SSP (for SPI and SSI interfaces);
+* 4 independent PWM modules (*PWM1*, *PWM2*, *PWM3*, *PWM4*);
+* 3 timers (*Timer0*, *Timer1*, *Timer2*).
+
+Most of the peripherials are not used. Focusing on *PWMx* modules, *Timer1*, and *Timer2*.
+
+## Development Tools
+
+### MPLAB X IDE
+
+This is the default choice for developing Microchip's devices (PIC, AVR, etc). Since it's open source, it's not a problem to install it in *Archlinux*.
+
+### MPASM
+
+This is the second default choice. MPASM, Microchip's Assembler, is shipped with MPLAB X IDE.
 
 ## Principles
 

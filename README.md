@@ -13,7 +13,7 @@ Develop and implement PIC-based microcontroller board that is able to drive fair
 
 ### Selecting MCU
 
-According to [MAPS](https://www.microchip.com/maps/Microcontroller.aspx)*PIC16F1503* is the cheapest and the simplest device of all the diversity of Microchip's production with 4 PWM onboard at the moment.
+According to [MAPS](https://www.microchip.com/maps/Microcontroller.aspx) *PIC16F1503* is the cheapest and the simplest device of all the diversity of Microchip's production with 4 PWM onboard at the moment.
 
 ### Capabilities
 

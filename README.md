@@ -4,9 +4,8 @@
 
 The project is a spin-off from [Arduino-based device](https://github.com/ValV/getting-started-arduino) that is more focused on hardware implementation, thus the main algorithm is derived from that work.
 
-## Task
+Main goal is to develop and implement PIC-based microcontroller board that is able to drive fairy lights like Arduino:
 
-Develop and implement PIC-based microcontroller board that is able to drive fairy lights like Arduino:
 ![Arduino-driven board](https://github.com/ValV/getting-started-arduino/raw/master/schematics.jpg)
 
 ## Target Device

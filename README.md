@@ -18,17 +18,17 @@ Changing duty cycle of a signal, one can change power level that is driven to th
 
 ### Mode switching and sequences
 
-The PWM data control registers are being set periodically (on timer) by special routine according to the wrap-around variable. This variable (*SQ*) indicates a state in a sequence (sequence of states), it increments 8 times and resets to inital value. So every mode has a sequence of 8 states (4 values for each LED in a state).
+The PWM data control registers are being set periodically (on timer) by special routine according to the wrap-around variable. Variable *SQ* indicates a state in a sequence (sequence of states), it increments 8 times and resets to inital value. So every mode has a sequence of 8 states (4 values for each LED in a state).
 
 There are 4 modes in the algorithm. Variable *MD* is responsible for cycling through the modes. Modes are switched by IOC (Interrupt On Change) signal from one of the pins.
 
 ### Interrupts
 
-Incrementing of variables *SQ* and *MD* is done after *ISR* (Interrupt Service Routine) label.
+Incrementing of variables *SQ* and *MD* is done on interrupt events. Interrupt events (interrupts) are being handled after *ISR* (Interrupt Service Routine) label.
 
 ### Device configuration
 
-Configuration is done in a special routine after *SETUP* label.
+Upon reset an MCU device goes into its initial state, so before using it one needs to configure MCU properly. Configuration is done in a special routine after *SETUP* label.
 
 ### Main routine
 
@@ -86,7 +86,7 @@ This is the default choice for developing Microchip's devices (PIC, AVR, etc). S
 
 This is the second default choice. MPASM, Microchip's Assembler, is shipped with MPLAB X IDE.
 
-## Debug and simulation
+## Debugging and simulation
 
 *TODO*
 

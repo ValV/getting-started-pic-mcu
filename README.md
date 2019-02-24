@@ -113,7 +113,44 @@ As show on the figure, all PWM duty cycle values are preceeded by *MOVLW* instru
 ![Figure 3](img/progmem-matrix-end.png)
 > Figure 3. End of the MX table
 
-Difference between the beginning and the end of the table gives exactly 128, which is exactly the number of values for all the modes (4x8x4).
+Difference between the beginning and the end of the table gives exactly 128, which is the number of values for all the modes (4x8x4).
+
+### Special Function Registers
+
+SFRs are another important things to check. There are two ways to do it.
+
+The fist one is via *Window -> Debugging -> IO View*. This will open a new window with SFRs grouped by a perpherial (Figure 4).
+
+![Figure 4](img/ioview-oscillator.png)
+> Figure 4. Oscillator SFRs
+
+Oscillator SFRs are the first to be examined due to waiting loop in the program code. The program will wait until oscillator is stable, reading *HFIOFS* bit in *OSCSTAT* register - it should be set manually since simulator has different oscillaton logic.
+
+This can be done also via *Window -> Target Memory Views -> SFRs* (Figure 5).
+
+![Figure 5](img/sfrmem-oscstat.png)
+> Figure 5. Oscillator SFRs in Target Memory Views
+
+### Variables
+
+Variables *MD* and *SQ* are stored in data memory (the Harvard architecture, ok). They are initially empty, thus it's important to check how the program changes their values.
+
+Variables are traced via *Window -> Debugging -> Watches* (Figure 6).
+
+![Figure 6](img/watches-x.png)
+> Figure 6. Watches window with variables
+
+It's also convenient to watch PWM data registers as well to be sure their values are set up correctly according to the mode *MD* and the state *SQ* in a sequence.
+
+### Logic Analyzer
+
+*MPLAB X IDE* also allows to check output for some period of time via *Window -> Simulator -> Logic Analyzer* (Figure 7).
+
+![Figure 7](img/logic-analyzer-pwm.png)
+> Figure 7. PWM output in Logic Analyzer
+
+The figure shows how duty cycle changes according to the values in PWM data registers, which is quite fair.
+
 
 ## Electronic scematics
 

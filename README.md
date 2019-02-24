@@ -88,7 +88,32 @@ This is the second default choice. MPASM, Microchip's Assembler, is shipped with
 
 ## Debugging and simulation
 
-*TODO*
+While the program is not loaded into the device, simulation is the only way to check up correctness of the program.
+
+### Breakpoints
+
+Breakpoint is set on the line with *GOTO START* this must be address *0000h*. After that debugger is launched in *MPLAB X IDE* with *Debug -> Debug Project (fairy-lights)*.
+
+After debugger is launched and stopped at address *0000h*, step-by-step tracing is possible via *F8* key. Thus checking instruction sequence.
+
+### Program memory
+
+Program memory should be explored to reveal how PWM data table is allocated in program memory. This is done via *Window -> Target Memory Views -> Program Memory*, then a new window will be opened with opcodes and disassembly at address *0000h* (Fugure 1).
+
+![Figure 1](img/progmem-start.png)
+> Figure 1. Program memory at address 0000h
+
+Column *Label* indicates a label of the instruction, so it's easy to find the beginning of the table using it (Figure 2).
+
+![Figure 2](img/progmem-mx-begin.png)
+> Figure 2. Beginning of the MX table
+
+As show on the figure, all PWM duty cycle values are preceeded by *MOVLW* instructions, as *DTM* directive specifies. This is correct until the end of the table (Figure 3).
+
+![Figure 3](img/progmem-mx-end.png)
+> Figure 3. End of the MX table
+
+Difference between the beginning and the end of the table gives exactly 128, which is exactly the number of values for all the modes (4x8x4).
 
 ## Electronic scematics
 
